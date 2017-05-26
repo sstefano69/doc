@@ -1,0 +1,375 @@
+swagger: '2.0'
+info:
+  description: >-
+    The cleaning process is used to remove rows from the readings table. The
+    removal is based on a set of rules, executed by a thread or a process. Due
+    to the constraint with hardware, it executes the rules in sequence and
+    executes them one after the other.
+  version: 1.0.0
+  title: FogLAMP cleaning process
+  termsOfService: 'http://foglamp.readthedocs.io'
+  contact:
+    email: info@scaledb.com
+  license:
+    name: Apache 2.0 license
+    url: 'https://www.apache.org/licenses/LICENSE-2.0'
+host: 'localhost:8080'
+basePath: /
+tags:
+  - name: Clean_status
+    description: Status of the cleaning process.
+    externalDocs:
+      description: Find out more
+      url: 'http://foglamp.readthedocs.io'
+schemes:
+  - http
+paths:
+  /maintenance/clean_status:
+    put:
+      tags:
+        - clean_status
+      summary: Set the status of the cleaning process.
+      description: ''
+      operationId: set_clean_status
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: status
+          in: body
+          description: Status of the cleaning process - “on” or “off”
+          required: true
+          schema:
+            $ref: '#/definitions/Clean_status'
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/Clean_status'
+        '400':
+          description: Error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '403':
+          description: Forbidden - The user must have the “set” privilege to set the clean
+            status
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+    get:
+      tags:
+        - clean_status
+      summary: Retrieve the status of the cleaning process.
+      description: ''
+      operationId: get_clean_status
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/Clean_status'
+        '400':
+          description: Error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  /maintenance/clean:
+    post:
+      tags:
+        - clean
+      summary: Set a cleaning.
+      description: ''
+      operationId: post_clean
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: Clean
+          in: body
+          description: The object(s) affected by the cleaning
+          required: true
+          schema:
+            $ref: '#/definitions/Clean'
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/LogResponse'
+        '400':
+          description: Error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '403':
+          description: Forbidden - the user must have the “create” privilege to set a new cleaning task.
+            status
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '404':
+          description: Value not found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '405':
+          description: Invalid operation. Possible causes of this error - An instant cleaning with time “now” has been requested, but the CLEAN configuration key is OFF
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  /maintenance/clean_all:
+    get:
+      tags:
+        - clean
+      summary: Retrieve information about all cleaning rules.
+      description: ''
+      operationId: get_clean_all
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            type: array
+            items:          
+              $ref:  '#/definitions/CleanRule'
+        '400':
+          description: Error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '403':
+          description: Forbidden - the user must have the “create” privilege to set a new cleaning task.
+            status
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '404':
+          description: Value not found
+          schema:
+            $ref: '#/definitions/ErrorResponse'          
+  /maintenance/clean/{id}:
+    get:
+      tags:
+        - clean
+      summary: Retrieve information about a cleaning rule.
+      description: ''
+      operationId: get_clean
+      produces:
+        - application/json
+      parameters:
+        - name: id
+          in: path
+          description: The cleaning rule. If no id is provided, all the rules are extracted.
+          required: true
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref:  '#/definitions/CleanRule'
+        '400':
+          description: Error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '403':
+          description: Forbidden - the user must have the “create” privilege to set a new cleaning task.
+            status
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '404':
+          description: Value not found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+    delete:
+      tags:
+        - clean
+      summary: Delete a rule.
+      description: ''
+      operationId: delete_clean
+      produces:
+        - application/json
+      parameters:
+        - name: id
+          in: path
+          description: The cleaning rule to delete.
+          required: true
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/LogResponse'
+        '400':
+          description: Error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '403':
+          description: Forbidden - the user must have the “create” privilege to set a new cleaning task.
+            status
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '404':
+          description: Value not found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  /maintenance/clean_execution/{id}:
+    get:
+      tags:
+        - clean_execution
+      summary: Retrieve information about the execution of one or more cleaning rules.
+      description: ''
+      operationId: get_clean_execution
+      produces:
+        - application/json
+      parameters:
+        - name: "id"
+          in: "path"
+          description: The cleaning rule to analyse.
+          required: true
+          type: integer
+          format: "int64"
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/LogResponse'
+        '400':
+          description: Error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '403':
+          description: Forbidden - the user must have the “create” privilege to set a new cleaning task.
+            status
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '404':
+          description: Value not found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+securityDefinitions:
+  petstore_auth:
+    type: oauth2
+    authorizationUrl: 'http://petstore.swagger.io/oauth/dialog'
+    flow: implicit
+    scopes:
+      'write:pets': modify pets in your account
+      'read:pets': read your pets
+  api_key:
+    type: apiKey
+    name: api_key
+    in: header
+definitions:
+  Clean_status:
+    type: object
+    required:
+      - status
+    properties:
+      status:
+        type: string
+        description: Status of the cleaning process
+        enum:
+          - 'on'
+          - 'off'
+        default: 'on'
+  CleanRule:
+    type: object
+    required:
+      - id
+      - object
+      - rule
+      - check
+    properties:
+      id:
+        type: integer
+        format: int64    
+      object:
+        $ref: '#/definitions/Object'
+      rule:
+        $ref: '#/definitions/Rule'
+      check:
+        $ref: '#/definitions/Check'
+  Clean:
+    type: object
+    required:
+      - object
+      - rule
+      - check
+    properties:
+      object:
+        $ref: '#/definitions/Object'
+      rule:
+        $ref: '#/definitions/Rule'
+      check:
+        $ref: '#/definitions/Check'
+  Object:
+    type: object
+    required:
+      - type
+    properties:
+      type:
+        type: string
+        description: Type of object
+        enum:
+          - destination
+          - stream
+          - parent asset
+          - asset
+          - all
+      value:
+        type: string
+        description: Depending on type
+  Rule:
+    type: object
+    required:
+      - type
+    properties:
+      type:
+        type: string
+        description: The type of rule
+        enum:
+          - sent
+          - system age
+          - user age
+          - label
+          - batch
+      value:
+        type: string
+        description: Depending on type
+  Check:
+    type: object
+    required:
+      - type
+    properties:
+      type:
+        type: string
+        description: The type of check
+        enum:
+          - always
+          - interval
+          - time
+      value:
+        type: string
+        description: Depending on type
+  LogResponse:
+    type: object
+    properties:
+      id:
+        type: integer
+        format: int64
+      log:
+        type: string
+      ts:
+        type: string  
+        format: date-time
+  ErrorResponse:
+    type: object
+    properties:
+      code:
+        type: integer
+        format: integer
+      severity:
+        type: string
+      message:
+        type: string
+externalDocs:
+  description: Find out more about FogLAMP
+  url: 'http://foglamp.readthedocs.io'
